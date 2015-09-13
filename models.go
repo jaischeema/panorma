@@ -14,7 +14,7 @@ type SimilarPhoto struct {
 type Photo struct {
 	Id            int64
 	Path          string `sql:"not null;unique"`
-	HashValue     string `sql:"not null"`
+	HashValue     uint64 `sql:"not null"`
 	TakenAt       time.Time
 	Lat           float64
 	Lng           float64

@@ -32,7 +32,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "database_url,d",
 			EnvVar: "DATABASE_URL",
-			Value:  "postgres:dbname=panorma_dev sslmode=disable",
+			Value:  "dbname=panorma_dev sslmode=disable",
 		},
 	}
 
