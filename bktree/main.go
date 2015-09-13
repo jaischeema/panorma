@@ -72,3 +72,8 @@ func (node *Node) Find(hashValue uint64, allowedDistance int) []interface{} {
 
 	return matchingNodes
 }
+
+func PHashValueForImage(path string) uint64 {
+	hash, _ := phash.ImageHashDCT(path)
+	return hash
+}
