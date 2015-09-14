@@ -6,8 +6,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/rwcarlsen/goexif/exif"
 	"image"
-	_ "image/jpeg"
-	_ "image/png"
 	"os"
 	"panorma/bktree"
 	"path"
@@ -17,7 +15,7 @@ import (
 
 type Result struct {
 	Id        int64
-	HashValue uint64
+	HashValue int64
 }
 
 var validExts = []string{".jpg", ".jpeg", ".tiff", ".tif", ".gif", ".png", ".JPG", ".mov", ".m4v", ".3gp"}
@@ -35,9 +33,9 @@ func createTreeFromDatabase(db gorm.DB) bktree.Node {
 	db.Select("id, hash_value").Find(&photos)
 	if len(photos) > 0 {
 		firstPhoto := photos[0]
-		tree := bktree.New(firstPhoto.HashValue, firstPhoto.Id)
+		tree := bktree.New(uint64(firstPhoto.HashValue), firstPhoto.Id)
 		for _, photo := range photos[1:] {
-			tree.Insert(photo.HashValue, photo.Id)
+			tree.Insert(uint64(photo.HashValue), photo.Id)
 		}
 		return tree
 	} else {
@@ -49,6 +47,7 @@ const allowedHammingDistance = 10
 
 func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 	tree := createTreeFromDatabase(db)
+	treeNeedsRootNode := (tree.HashValue == 0)
 
 	walkFunc := func(itemPath string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -58,20 +57,29 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 		if !info.IsDir() && strIn(filepath.Ext(itemPath), validExts) {
 			photo, err := processPhoto(itemPath, info)
 			if err != nil {
-				fmt.Println("Error opening file: %v", itemPath)
-				return nil
+				fmt.Println("Error opening file: ", itemPath)
+				return err
 			}
-			photo.Size = info.Size()
-			photo.HashValue = bktree.PHashValueForImage(itemPath)
 
-			tx := db.Begin()
 			if photo.ExistsInDatabase(db) {
 				fmt.Println("Skipping: ", itemPath)
 			} else {
+				tx := db.Begin()
+
+				photo.Size = info.Size()
+				photoHashValue := bktree.PHashValueForImage(itemPath)
+				photo.HashValue = int64(photoHashValue)
+
 				db.Save(&photo)
 
-				tree.Insert(photo.HashValue, photo.Id)
-				duplicateIds := tree.Find(photo.HashValue, allowedHammingDistance)
+				if treeNeedsRootNode {
+					tree = bktree.New(photoHashValue, photo.Id)
+					treeNeedsRootNode = false
+				} else {
+					tree.Insert(photoHashValue, photo.Id)
+				}
+
+				duplicateIds := tree.Find(photoHashValue, allowedHammingDistance)
 				for _, duplicateId := range duplicateIds {
 					if duplicateId == photo.Id {
 						continue
@@ -87,10 +95,11 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 
 				if err != nil {
 					tx.Rollback()
+					return err
 				}
-				fmt.Println("Move to Archive directory")
+				fmt.Println("Move to Archive directory :", itemPath)
+				tx.Commit()
 			}
-			tx.Commit()
 		}
 		return nil
 	}
@@ -101,7 +110,7 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 	}
 }
 
-func moveFileInTransaction(filePath string, destinationRoot string, destinationPath string) error {
+func moveFileInTransaction(itemPath string, destinationRoot string, destinationPath string) error {
 	sourceinfo, err := os.Stat(destinationRoot)
 	if err != nil {
 		fmt.Println("Destination Directory cannot be accessed.")
@@ -118,7 +127,7 @@ func moveFileInTransaction(filePath string, destinationRoot string, destinationP
 		return err1
 	}
 
-	err2 := os.Rename(filePath, fullPath)
+	err2 := os.Rename(itemPath, fullPath)
 
 	if err2 != nil {
 		fmt.Println("Unable to move the file.")

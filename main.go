@@ -17,17 +17,17 @@ func main() {
 		cli.StringFlag{
 			Name:   "source_path,s",
 			EnvVar: "SOURCE_PATH",
-			Value:  "~/Pictures/Original",
+			Value:  "/Users/jais/Pictures/Original",
 		},
 		cli.StringFlag{
 			Name:   "destination_path,e",
 			EnvVar: "DESTINATION_PATH",
-			Value:  "~/Pictures/Archive",
+			Value:  "/Users/jais/Pictures/Archive",
 		},
 		cli.StringFlag{
 			Name:   "thumbnails_path,t",
 			EnvVar: "THUMBNAILS_PATH",
-			Value:  "~/Pictures/Thumbnails",
+			Value:  "/Users/jais/Pictures/Thumbnails",
 		},
 		cli.StringFlag{
 			Name:   "database_url,d",
