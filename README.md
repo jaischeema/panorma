@@ -28,6 +28,13 @@ Simple app to archive the images/videos into proper folder structure.
 
 *Not yet implemented*
 
+## TODO
+
+* Add tests - *test 'em all*
+* Simple server component that could be used with a frontend app
+* Upload archived images to flickr or Google Photos
+* Generate thumbnails
+
 ## License
 
 MIT
