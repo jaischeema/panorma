@@ -17,7 +17,7 @@ func main() {
 		cli.StringFlag{
 			Name:   "source_path,s",
 			EnvVar: "SOURCE_PATH",
-			Value:  "/Users/jais/Pictures/Original",
+			Value:  "/Users/jais/Pictures/Originals",
 		},
 		cli.StringFlag{
 			Name:   "destination_path,e",

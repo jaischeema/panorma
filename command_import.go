@@ -147,28 +147,20 @@ func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
 	data, err := exif.Decode(file)
 
 	if err != nil {
-		fmt.Println(err)
-		return
+		return extractImageWithDimensions(path, info), nil
 	}
-	//TODO: Replace this logic again
-	// if err != nil {
-	// 	return extractImageWithDimensions(path, info), nil
-	// }
 
 	tm, _ := data.DateTime()
 	lat, long, _ := data.LatLong()
 	widthTag, err := data.Get("PixelXDimension")
 	heightTag, err := data.Get("PixelYDimension")
 
-	var width int
-	var height int
-
 	if widthTag == nil || heightTag == nil {
-		width, height = getDimensionsForImageFile(file)
-	} else {
-		width, _ = widthTag.Int(0)
-		height, _ = heightTag.Int(0)
+		return extractImageWithDimensions(path, info), nil
 	}
+
+	width, _ := widthTag.Int(0)
+	height, _ := heightTag.Int(0)
 
 	photo = Photo{
 		Path:    calculatePhotoTimedPath(path, tm),
@@ -197,7 +189,20 @@ func strIn(a string, list []string) bool {
 	return false
 }
 
-func getDimensionsForImageFile(file *os.File) (int, int) {
+func extractImageWithDimensions(path string, info os.FileInfo) Photo {
+	width, height := imageDimensions(path)
+
+	return Photo{
+		Path:    calculatePhotoTimedPath(path, info.ModTime()),
+		TakenAt: info.ModTime(),
+		Height:  height,
+		Width:   width,
+	}
+}
+
+func imageDimensions(imagePath string) (int, int) {
+	file, _ := os.Open(imagePath)
+	defer file.Close()
 	image, _, _ := image.DecodeConfig(file)
 	return image.Width, image.Height
 }
