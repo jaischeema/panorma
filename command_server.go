@@ -1,13 +1,13 @@
 package main
 
 import (
-	// "fmt"
+	"net/http"
+
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	"github.com/unrolled/render"
-	"net/http"
 )
 
 var Render = render.New()
@@ -22,8 +22,12 @@ func PhotoHandler(response http.ResponseWriter, request *http.Request) {
 	id := vars["id"]
 
 	var photo Photo
-	DB.Preload("SimilarPhotos").First(&photo, id)
-	Render.JSON(response, http.StatusOK, photo)
+	if DB.Preload("SimilarPhotos").First(&photo, id).RecordNotFound() {
+		errorResponse := map[string]string{"error": "No photo found for ID " + id}
+		Render.JSON(response, http.StatusNotFound, errorResponse)
+	} else {
+		Render.JSON(response, http.StatusOK, photo)
+	}
 }
 
 func SimilarPhotosHandler(response http.ResponseWriter, request *http.Request) {
@@ -40,5 +44,5 @@ func RunServer(c *cli.Context) {
 
 	server := negroni.Classic()
 	server.UseHandler(router)
-	server.Run(":3000")
+	server.Run(":3001")
 }
