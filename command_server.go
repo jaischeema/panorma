@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/codegangsta/cli"
 	"github.com/codegangsta/negroni"
@@ -14,7 +15,15 @@ var Render = render.New()
 var DB gorm.DB
 
 func PhotosHandler(response http.ResponseWriter, request *http.Request) {
-	Render.JSON(response, http.StatusOK, map[string]string{"hello": "world"})
+	pageString := request.URL.Query().Get("page")
+	page := 1
+	if pageString != "" {
+		page, _ = strconv.Atoi(pageString)
+	}
+	var photos []Photo
+	offset := (page - 1) * 20
+	DB.Offset(offset).Limit(20).Find(&photos)
+	Render.JSON(response, http.StatusOK, photos)
 }
 
 func PhotoHandler(response http.ResponseWriter, request *http.Request) {

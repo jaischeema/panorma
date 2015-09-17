@@ -22,7 +22,7 @@ type Photo struct {
 	Height        int            `json:"height"`
 	Width         int            `json:"width"`
 	Size          int64          `json:"size"`
-	SimilarPhotos []SimilarPhoto `json:"similar_photos"`
+	SimilarPhotos []SimilarPhoto `json:"similar_photos,omitempty"`
 }
 
 func (photo Photo) ExistsInDatabase(db gorm.DB) bool {
