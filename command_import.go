@@ -21,7 +21,10 @@ type Result struct {
 	HashValue int64
 }
 
-var validExts = []string{".jpg", ".jpeg", ".tiff", ".tif", ".gif", ".png", ".JPG", ".mov", ".m4v", ".3gp"}
+var (
+	validPhotoExts = []string{".jpg", ".jpeg", ".tiff", ".tif", ".gif", ".png"}
+	validMovieExts = []string{".mov", ".m4v", ".mp4", ".mov"}
+)
 
 func ImportImages(c *cli.Context) {
 	db := SetupDatabase(c)
@@ -74,7 +77,11 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 			return err
 		}
 
-		if !info.IsDir() && strIn(filepath.Ext(itemPath), validExts) {
+		fileExtension := filepath.Ext(itemPath)
+		isMovie := strIn(fileExtension, validMovieExts)
+		isPhoto := strIn(fileExtension, validPhotoExts)
+
+		if !info.IsDir() && (isMovie || isPhoto) {
 			photo, err := processPhoto(itemPath, info)
 			if err != nil {
 				log.WithFields(log.Fields{
@@ -100,28 +107,33 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 				tx := db.Begin()
 
 				photo.Size = info.Size()
-				photoHashValue := bktree.PHashValueForImage(itemPath)
-				photo.HashValue = int64(photoHashValue)
+				var photoHashValue uint64
+				if isPhoto {
+					photoHashValue = bktree.PHashValueForImage(itemPath)
+					photo.HashValue = int64(photoHashValue)
+				}
 
 				db.Save(&photo)
 
-				if treeNeedsRootNode {
-					tree = bktree.New(photoHashValue, photo.Id)
-					treeNeedsRootNode = false
-				} else {
-					tree.Insert(photoHashValue, photo.Id)
-				}
-
-				duplicateIds := tree.Find(photoHashValue, allowedHammingDistance)
-				for _, duplicateId := range duplicateIds {
-					if duplicateId == photo.Id {
-						continue
+				if isPhoto {
+					if treeNeedsRootNode {
+						tree = bktree.New(photoHashValue, photo.Id)
+						treeNeedsRootNode = false
+					} else {
+						tree.Insert(photoHashValue, photo.Id)
 					}
-					var similarPhoto SimilarPhoto
-					db.Where(SimilarPhoto{
-						PhotoId:        photo.Id,
-						SimilarPhotoId: duplicateId.(int64),
-					}).FirstOrCreate(&similarPhoto)
+
+					duplicateIds := tree.Find(photoHashValue, allowedHammingDistance)
+					for _, duplicateId := range duplicateIds {
+						if duplicateId == photo.Id {
+							continue
+						}
+						var similarPhoto SimilarPhoto
+						db.Where(SimilarPhoto{
+							PhotoId:        photo.Id,
+							SimilarPhotoId: duplicateId.(int64),
+						}).FirstOrCreate(&similarPhoto)
+					}
 				}
 
 				err = moveFileInTransaction(itemPath, destinationPath, photo.Path)
