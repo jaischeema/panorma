@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -239,7 +240,7 @@ func calculatePhotoTimedPath(filepath string, takenAt time.Time) string {
 
 func strIn(a string, list []string) bool {
 	for _, b := range list {
-		if b == a {
+		if strings.EqualFold(a, b) {
 			return true
 		}
 	}
