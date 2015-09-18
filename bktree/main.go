@@ -1,8 +1,9 @@
 package bktree
 
 import (
-	"github.com/kavu/go-phash"
 	"log"
+
+	"github.com/kavu/go-phash"
 )
 
 type WalkerNode struct {
