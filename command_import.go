@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/codegangsta/cli"
-	"github.com/jinzhu/gorm"
-	"github.com/rwcarlsen/goexif/exif"
 	"image"
 	"os"
-	"panorma/bktree"
 	"path"
 	"path/filepath"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/codegangsta/cli"
+	"github.com/jaischeema/panorma/bktree"
+	"github.com/jinzhu/gorm"
+	"github.com/rwcarlsen/goexif/exif"
 )
 
 type Result struct {
@@ -25,13 +27,24 @@ func ImportImages(c *cli.Context) {
 	sourcePath := c.String("source_path")
 	destinationPath := c.String("destination_path")
 
+	log.WithFields(log.Fields{
+		"source":      sourcePath,
+		"destination": destinationPath,
+	}).Info("Starting image import.")
+
 	processPhotos(db, sourcePath, destinationPath)
 }
 
 func createTreeFromDatabase(db gorm.DB) bktree.Node {
+	log.Info("Initializing BKTree")
+
 	var photos []Photo
 	db.Select("id, hash_value").Find(&photos)
 	if len(photos) > 0 {
+		log.WithFields(log.Fields{
+			"count": len(photos),
+		}).Info("Photos found in database")
+
 		firstPhoto := photos[0]
 		tree := bktree.New(uint64(firstPhoto.HashValue), firstPhoto.Id)
 		for _, photo := range photos[1:] {
@@ -39,6 +52,7 @@ func createTreeFromDatabase(db gorm.DB) bktree.Node {
 		}
 		return tree
 	} else {
+		log.Info("No photos, creating empty tree")
 		return bktree.Node{}
 	}
 }
@@ -51,18 +65,36 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 
 	walkFunc := func(itemPath string, info os.FileInfo, err error) error {
 		if err != nil {
+			log.WithFields(log.Fields{
+				"path": itemPath,
+				"err":  err,
+			}).Warn("Unable to process item")
+
 			return err
 		}
 
 		if !info.IsDir() && strIn(filepath.Ext(itemPath), validExts) {
 			photo, err := processPhoto(itemPath, info)
 			if err != nil {
-				fmt.Println("Error opening file: ", itemPath)
+				log.WithFields(log.Fields{
+					"path": itemPath,
+					"err":  err,
+				}).Warn("Unable to open item")
 				return err
 			}
 
+			log.WithFields(log.Fields{
+				"height":   photo.Height,
+				"width":    photo.Width,
+				"taken_at": photo.TakenAt,
+				"path":     photo.Path,
+			}).Info("Processed attributes")
+
 			if photo.ExistsInDatabase(db) {
-				fmt.Println("Skipping: ", itemPath)
+				// TODO: Move the duplicates to duplicate folder
+				log.WithFields(log.Fields{
+					"path": itemPath,
+				}).Info("Already in database")
 			} else {
 				tx := db.Begin()
 
@@ -97,7 +129,12 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 					tx.Rollback()
 					return err
 				}
-				fmt.Println("Move to Archive directory :", itemPath)
+
+				log.WithFields(log.Fields{
+					"path":        itemPath,
+					"destination": photo.Path,
+				}).Info("Moved to archive")
+
 				tx.Commit()
 			}
 		}
@@ -113,7 +150,11 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 func moveFileInTransaction(itemPath string, destinationRoot string, destinationPath string) error {
 	sourceinfo, err := os.Stat(destinationRoot)
 	if err != nil {
-		fmt.Println("Destination Directory cannot be accessed.")
+		log.WithFields(log.Fields{
+			"destination": destinationRoot,
+			"err":         err,
+		}).Error("Destination Directory cannot be accessed.")
+
 		return err
 	}
 
@@ -123,23 +164,35 @@ func moveFileInTransaction(itemPath string, destinationRoot string, destinationP
 	err1 := os.MkdirAll(basePath, sourceinfo.Mode())
 
 	if err1 != nil {
-		fmt.Println("Unable to create the directory structure.")
+		log.WithFields(log.Fields{
+			"destination": basePath,
+			"err":         err1,
+		}).Error("Unable to create the directory structure.")
+
 		return err1
 	}
 
 	err2 := os.Rename(itemPath, fullPath)
 
 	if err2 != nil {
-		fmt.Println("Unable to move the file.")
+		log.WithFields(log.Fields{
+			"item":     itemPath,
+			"fullPath": fullPath,
+			"err":      err2,
+		}).Error("Unable to move the file.")
+
 		return err2
 	}
 	return nil
 }
 
 func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
+	log.WithFields(log.Fields{
+		"path": path,
+	}).Info("Processing item")
+
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Println("Error opening file: ", path)
 		return
 	}
 	defer file.Close()
@@ -147,6 +200,9 @@ func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
 	data, err := exif.Decode(file)
 
 	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Unable to decode EXIF data")
 		return extractImageWithDimensions(path, info), nil
 	}
 
@@ -156,6 +212,7 @@ func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
 	heightTag, err := data.Get("PixelYDimension")
 
 	if widthTag == nil || heightTag == nil {
+		log.Warn("WidthTag OR HeightTag is not available")
 		return extractImageWithDimensions(path, info), nil
 	}
 
