@@ -1,0 +1,58 @@
+{
+	"ImportPath": "github.com/jaischeema/panorma",
+	"GoVersion": "go1.5",
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.8.6-7-g9c060de",
+			"Rev": "9c060de643590dae45da9d7c26276463bfc46fa0"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-50-ga14c5b4",
+			"Rev": "a14c5b47c7efa4ff80cc42e1079a34b4756f2311"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/negroni",
+			"Comment": "v0.1-70-gc7477ad",
+			"Rev": "c7477ad8e330bef55bf1ebe300cf8aa67c492d1b"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "f7b6aaaa69e39a15e1f94389b8effd3f9338b013"
+		},
+		{
+			"ImportPath": "github.com/jinzhu/gorm",
+			"Rev": "dd0d4d931f0d6b52e3c8df75496b0a1aaa5667e6"
+		},
+		{
+			"ImportPath": "github.com/kavu/go-phash",
+			"Rev": "4b8fcacfd5df79b115a9df9a5c0ec4dc9f67657e"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-59-gb269bd0",
+			"Rev": "b269bd035a727d6c1081f76e7a239a1b00674c40"
+		},
+		{
+			"ImportPath": "github.com/qor/inflection",
+			"Rev": "45321e63b98c756df17369c027c1df89298e1288"
+		},
+		{
+			"ImportPath": "github.com/rwcarlsen/goexif/exif",
+			"Rev": "9fb3b23c1aaada5775178242884b75d4f4a330d3"
+		},
+		{
+			"ImportPath": "github.com/rwcarlsen/goexif/tiff",
+			"Rev": "9fb3b23c1aaada5775178242884b75d4f4a330d3"
+		},
+		{
+			"ImportPath": "github.com/unrolled/render",
+			"Rev": "d4edd394101358a4f8e462c43f884d9af99a4d30"
+		}
+	]
+}
