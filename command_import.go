@@ -204,10 +204,19 @@ func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
 		log.WithFields(log.Fields{
 			"error": err,
 		}).Warn("Unable to decode EXIF data")
+
 		return extractImageWithDimensions(path, info), nil
 	}
 
-	tm, _ := data.DateTime()
+	tm, err := data.DateTime()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error": err,
+		}).Warn("Unable to find EXIF datetime")
+
+		return extractImageWithDimensions(path, info), nil
+	}
+
 	lat, long, _ := data.LatLong()
 	widthTag, err := data.Get("PixelXDimension")
 	heightTag, err := data.Get("PixelYDimension")
