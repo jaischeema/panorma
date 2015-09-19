@@ -26,12 +26,11 @@ Simple app to archive the images/videos into proper folder structure.
 
 **Server Command**
 
-*Not yet implemented*
+`panorma server -s /source_dir -e /destination_dir -d "dbname=panorma_dev sslmode=disable"`
 
 ## TODO
 
 * Add tests - *test 'em all*
-* Simple server component that could be used with a frontend app
 * Upload archived images to flickr or Google Photos
 * Generate thumbnails
 
