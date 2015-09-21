@@ -27,16 +27,20 @@ var (
 )
 
 func ImportImages(c *cli.Context) {
-	db := SetupDatabase(c)
-	sourcePath := c.String("source_path")
-	destinationPath := c.String("destination_path")
+	config, err := LoadConfig(c.String("config"))
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	db := SetupDatabase(config.DatabaseConnectionString)
 
 	log.WithFields(log.Fields{
-		"source":      sourcePath,
-		"destination": destinationPath,
+		"source":      config.SourceFolderPath,
+		"destination": config.DestinationFolderPath,
 	}).Info("Starting image import.")
 
-	processPhotos(db, sourcePath, destinationPath)
+	processPhotos(db, config.SourceFolderPath, config.DestinationFolderPath)
 }
 
 func createTreeFromDatabase(db gorm.DB) bktree.Node {

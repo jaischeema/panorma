@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/codegangsta/cli"
@@ -11,12 +12,21 @@ import (
 	"github.com/unrolled/render"
 )
 
-var Render = render.New()
-var DB gorm.DB
+var (
+	Render    = render.New()
+	DB        gorm.DB
+	ConfigObj Config
+)
 
 func RunServer(c *cli.Context) {
 	router := mux.NewRouter()
-	DB = SetupDatabase(c)
+
+	ConfigObj, err := LoadConfig(c.String("config"))
+	if err != nil {
+		os.Exit(1)
+	}
+
+	DB = SetupDatabase(ConfigObj.DatabaseConnectionString)
 
 	router.HandleFunc("/photos", PhotosHandler)
 	router.HandleFunc("/photos/{id}", PhotoHandler)

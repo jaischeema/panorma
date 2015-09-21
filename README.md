@@ -22,11 +22,11 @@ Simple app to archive the images/videos into proper folder structure.
 
 **Import command**
 
-`panorma import -s /source_dir -e /destination_dir -d "dbname=panorma_dev sslmode=disable"`
+`panorma import -c /path/to/config.json`
 
 **Server Command**
 
-`panorma server -s /source_dir -e /destination_dir -d "dbname=panorma_dev sslmode=disable"`
+`panorma server -c /path/to/config.json`
 
 ## TODO
 
