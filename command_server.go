@@ -15,18 +15,18 @@ import (
 var (
 	Render    = render.New()
 	DB        gorm.DB
-	ConfigObj Config
+	AppConfig Config
 )
 
 func RunServer(c *cli.Context) {
 	router := mux.NewRouter()
 
-	ConfigObj, err := LoadConfig(c.String("config"))
+	AppConfig, err := LoadConfig(c.String("config"))
 	if err != nil {
 		os.Exit(1)
 	}
 
-	DB = SetupDatabase(ConfigObj.DatabaseConnectionString)
+	DB = SetupDatabase(AppConfig.DatabaseConnectionString)
 
 	router.HandleFunc("/photos", PhotosHandler)
 	router.HandleFunc("/photos/{id}", PhotoHandler)

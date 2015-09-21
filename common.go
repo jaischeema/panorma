@@ -8,6 +8,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const Thumbnails = map[string][]int{
+	"small": []int{100, 100},
+	"large": []int{500, 500},
+}
+
 type Config struct {
 	SourceFolderPath         string `json:"source_folder_path"`
 	DestinationFolderPath    string `json:"destination_folder_path"`
