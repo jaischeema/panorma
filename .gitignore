@@ -4,3 +4,5 @@ main
 gin-bin
 Godeps/_workspace
 config.json
+node_modules
+public
