@@ -8,6 +8,12 @@ import (
 
 const ResultsPerRequest = 20
 
+type Date struct {
+	Day   int `json:"day"`
+	Month int `json:"month"`
+	Year  int `json:"year"`
+}
+
 type SimilarPhoto struct {
 	Id             int64 `json:"id"`
 	PhotoId        int64 `json:"photo_id"`
@@ -53,43 +59,10 @@ func FindAllPhotos(page, year, month, day int) []Photo {
 	return photos
 }
 
-func FindAllYears() []int {
-	years := []int{}
-	selectString := "date_part('year', taken_at) as year"
-	rows, _ := DB.Table("photos").Select(selectString).Group("year").Order("year").Rows()
-	for rows.Next() {
-		var year int
-		rows.Scan(&year)
-		years = append(years, year)
-	}
-	return years
-}
-
-func FindAllMonths(year int) []int {
-	months := []int{}
-	db := DB.Table("photos").Select("date_part('month', taken_at) as month")
-	db = db.Group("month").Order("month")
-	db = db.Where("date_part('year', taken_at) = ?", year)
-	rows, _ := db.Rows()
-	for rows.Next() {
-		var month int
-		rows.Scan(&month)
-		months = append(months, month)
-	}
-	return months
-}
-
-func FindAllDays(year int, month int) []int {
-	days := []int{}
-	db := DB.Table("photos").Select("date_part('day', taken_at) as day")
-	db = db.Group("day").Order("day")
-	db = db.Where("date_part('year', taken_at) = ?", year)
-	db = db.Where("date_part('month', taken_at) = ?", month)
-	rows, _ := db.Rows()
-	for rows.Next() {
-		var day int
-		rows.Scan(&day)
-		days = append(days, day)
-	}
-	return days
+func AllDistinctDates() []Date {
+	var results []Date
+	db := DB.Table("photos").Select("date_part('day', taken_at) as day, date_part('month', taken_at) as month, date_part('year', taken_at) as year")
+	db = db.Group("day, month, year").Order("year, month, day")
+	db.Scan(&results)
+	return results
 }

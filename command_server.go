@@ -31,7 +31,7 @@ func RunServer(c *cli.Context) {
 	router.HandleFunc("/photos", PhotosHandler)
 	router.HandleFunc("/photos/{id}", PhotoHandler)
 	router.HandleFunc("/similar", SimilarPhotosHandler)
-	router.HandleFunc("/intervals", Intervals)
+	router.HandleFunc("/all_dates", AllDates)
 
 	server := negroni.Classic()
 	server.UseHandler(router)
@@ -40,26 +40,10 @@ func RunServer(c *cli.Context) {
 
 type JSONResponse map[string]interface{}
 
-func Intervals(response http.ResponseWriter, request *http.Request) {
-	year := parseIntValueForParamWithDefaultZero(request, "year")
-	month := parseIntValueForParamWithDefaultZero(request, "month")
-
-	if year == 0 {
-		Render.JSON(response, http.StatusOK, JSONResponse{"years": FindAllYears()})
-	} else {
-		if month == 0 {
-			Render.JSON(response, http.StatusOK, JSONResponse{
-				"months": FindAllMonths(year),
-				"year":   year,
-			})
-		} else {
-			Render.JSON(response, http.StatusOK, JSONResponse{
-				"days":  FindAllDays(year, month),
-				"month": month,
-				"year":  year,
-			})
-		}
-	}
+func AllDates(response http.ResponseWriter, request *http.Request) {
+	Render.JSON(response, http.StatusOK, JSONResponse{
+		"dates": AllDistinctDates(),
+	})
 }
 
 func PhotosHandler(response http.ResponseWriter, request *http.Request) {
