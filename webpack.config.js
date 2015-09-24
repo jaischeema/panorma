@@ -2,7 +2,7 @@ module.exports = {
   context: __dirname + "/client",
   entry: {
     javascript: "./app.js",
-    html: "./index.html",
+    html: "./index.html"
   },
 
   output: {
@@ -11,13 +11,24 @@ module.exports = {
   },
 
   module: {
-    loaders: [{
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loaders: ["react-hot", "babel-loader"],
-    }, {
-      test: /\.html$/,
-      loader: "file?name=[name].[ext]",
-    }],
-  },
+    loaders: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loaders: ["react-hot", "babel-loader"],
+      },
+      {
+        test: /\.html$/,
+        loader: "file?name=[name].[ext]",
+      },
+      {
+        test: /\.scss$/,
+        loaders: ['style-loader', 'css-loader', 'sass-loader']
+      },
+      {
+        test: /\.css$/,
+        loaders: ['style-loader', 'css-loader']
+      }
+    ],
+  }
 }
