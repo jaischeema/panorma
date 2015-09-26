@@ -1,11 +1,16 @@
-import React from 'react';
+import React   from 'react';
+import Sidebar from './sidebar';
+
+require('../styles/app.scss');
 
 export default class App extends React.Component {
   render() {
     return (
       <div className="container">
-        <h1>Panorma</h1>
-        {this.props.children}
+        <Sidebar />
+        <div className="content">
+          {this.props.children}
+        </div>
       </div>
     );
   }
