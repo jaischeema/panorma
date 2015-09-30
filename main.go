@@ -35,6 +35,12 @@ func main() {
 			Action:    RunServer,
 			Flags:     configFlag,
 		},
+		{
+			Name:      "thumbnails",
+			ShortName: "t",
+			Action:    ThumbnailImages,
+			Flags:     configFlag,
+		},
 	}
 
 	app.RunAndExitOnError()
