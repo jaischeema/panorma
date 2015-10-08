@@ -21,7 +21,8 @@ var (
 func RunServer(c *cli.Context) {
 	router := mux.NewRouter()
 
-	AppConfig, err := LoadConfig(c.String("config"))
+	var err error
+	AppConfig, err = LoadConfig(c.String("config"))
 	if err != nil {
 		os.Exit(1)
 	}
@@ -42,7 +43,7 @@ type JSONResponse map[string]interface{}
 
 func AllDates(response http.ResponseWriter, request *http.Request) {
 	Render.JSON(response, http.StatusOK, JSONResponse{
-		"dates": AllDistinctDates(),
+		"dates": AllDistinctDates(DB),
 	})
 }
 
@@ -52,7 +53,7 @@ func PhotosHandler(response http.ResponseWriter, request *http.Request) {
 	month := parseIntValueForParamWithDefaultZero(request, "month")
 	day := parseIntValueForParamWithDefaultZero(request, "day")
 
-	photos := FindAllPhotos(page, year, month, day)
+	photos := FindAllPhotos(DB, page, year, month, day)
 	Render.JSON(response, http.StatusOK, photos)
 }
 

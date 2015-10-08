@@ -43,30 +43,30 @@ func (photo Photo) ExistsInDatabase(db gorm.DB) bool {
 	return count >= 1
 }
 
-func FindAllPhotos(page, year, month, day int) []Photo {
+func FindAllPhotos(db gorm.DB, page, year, month, day int) []Photo {
 	var photos []Photo
 	offset := (page - 1) * ResultsPerRequest
-	db := DB.Offset(offset).Limit(ResultsPerRequest)
+	scope := db.Offset(offset).Limit(ResultsPerRequest)
 
 	if year > 0 {
-		db = db.Where("date_part('year', taken_at) = ?", year)
+		scope = scope.Where("date_part('year', taken_at) = ?", year)
 
 		if month > 0 {
-			db = db.Where("date_part('month', taken_at) = ?", month)
+			scope = scope.Where("date_part('month', taken_at) = ?", month)
 
 			if day > 0 {
-				db = db.Where("date_part('day', taken_at) = ?", day)
+				scope = scope.Where("date_part('day', taken_at) = ?", day)
 			}
 		}
 	}
-	db.Find(&photos)
+	scope.Find(&photos)
 	return photos
 }
 
-func AllDistinctDates() []Date {
+func AllDistinctDates(db gorm.DB) []Date {
 	var results []Date
-	db := DB.Table("photos").Select("date_part('day', taken_at) as day, date_part('month', taken_at) as month, date_part('year', taken_at) as year")
-	db = db.Group("day, month, year").Order("year, month, day")
-	db.Scan(&results)
+	scope := db.Table("photos").Select("date_part('day', taken_at) as day, date_part('month', taken_at) as month, date_part('year', taken_at) as year")
+	scope = scope.Group("day, month, year").Order("year, month, day")
+	scope.Scan(&results)
 	return results
 }
