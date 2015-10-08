@@ -73,6 +73,6 @@ func AllDistinctDates(db gorm.DB) []Date {
 
 func PhotosNotThumbnailed(db gorm.DB) []Photo {
 	var photos []Photo
-	db.Where("thumbnailed = false").Find(&photos)
+	db.Where("thumbnailed = false AND is_video = false").Find(&photos)
 	return photos
 }

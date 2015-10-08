@@ -11,8 +11,8 @@ import (
 )
 
 type ThumbnailSize struct {
-	Width  uint
-	Height uint
+	Width  int
+	Height int
 }
 
 var ThumbnailSizes = map[string]ThumbnailSize{

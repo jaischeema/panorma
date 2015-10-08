@@ -1,6 +1,6 @@
 {
-  "source_folder_path": "/path/to/originals",
-  "destination_folder_path": "/path/to/archive",
-  "thumbnails_folder_path": "/path/to/thumbnails",
-  "database_connection_string": "dbname=panorma_dev sslmode=disable"
+  "source_folder_path":         "/path/to/originals",
+  "destination_folder_path":    "/path/to/archive",
+  "thumbnails_folder_path":     "/path/to/thumbnails",
+  "database_connection_string": "dbname=panorma_dev sslmode=disable",
 }
