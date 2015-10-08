@@ -13,9 +13,12 @@ export default class PhotoList extends React.Component {
     return (
       <div key={`photo-${photo.id}`} className="col-xs-6 col-md-3">
         <div className="thumbnail">
+          <img src={`/photos/${photo.id}/large`} />
           <div className="caption">
-            <h3>{photo.path}</h3>
-            <p>{photo.hash_value}</p>
+            <h5>{photo.name}</h5>
+            <p>{photo.height}</p>
+            <p>{photo.width}</p>
+            <p>{photo.ext}</p>
           </div>
         </div>
       </div>
