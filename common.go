@@ -18,8 +18,9 @@ type ThumbnailSize struct {
 }
 
 var ThumbnailSizes = map[string]ThumbnailSize{
-	"small": ThumbnailSize{100, 100},
-	"large": ThumbnailSize{500, 500},
+	"small":  ThumbnailSize{100, 100},
+	"medium": ThumbnailSize{300, 200},
+	"large":  ThumbnailSize{1200, 666},
 }
 
 type Config struct {
