@@ -70,3 +70,9 @@ func AllDistinctDates(db gorm.DB) []Date {
 	scope.Scan(&results)
 	return results
 }
+
+func PhotosNotThumbnailed(db gorm.DB) []Photo {
+	var photos []Photo
+	db.Where("thumbnailed = false").Find(&photos)
+	return photos
+}
