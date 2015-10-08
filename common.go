@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"path"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
@@ -43,4 +45,13 @@ func SetupDatabase(connectionString string) gorm.DB {
 
 	db.AutoMigrate(&Photo{}, &SimilarPhoto{})
 	return db
+}
+
+func PartitionIdAsPath(input int64) string {
+	inputRunes := []rune(fmt.Sprintf("%09d", input))
+	return path.Join(
+		string(inputRunes[0:3]),
+		string(inputRunes[3:6]),
+		string(inputRunes[6:]),
+	)
 }
