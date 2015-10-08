@@ -8,9 +8,14 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const Thumbnails = map[string][]int{
-	"small": []int{100, 100},
-	"large": []int{500, 500},
+type ThumbnailSize struct {
+	Width  uint
+	Height uint
+}
+
+var ThumbnailSizes = map[string]ThumbnailSize{
+	"small": ThumbnailSize{100, 100},
+	"large": ThumbnailSize{500, 500},
 }
 
 type Config struct {
