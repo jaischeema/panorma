@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 
 	"github.com/codegangsta/cli"
@@ -31,6 +32,7 @@ func RunServer(c *cli.Context) {
 
 	router.HandleFunc("/photos", PhotosHandler)
 	router.HandleFunc("/photos/{id}", PhotoHandler)
+	router.HandleFunc("/photos/{id}/{thumb}", ImageHandler)
 	router.HandleFunc("/similar", SimilarPhotosHandler)
 	router.HandleFunc("/all_dates", AllDates)
 
@@ -67,6 +69,21 @@ func PhotoHandler(response http.ResponseWriter, request *http.Request) {
 		Render.JSON(response, http.StatusNotFound, errorResponse)
 	} else {
 		Render.JSON(response, http.StatusOK, photo)
+	}
+}
+
+func ImageHandler(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	id := vars["id"]
+	thumb := vars["thumb"]
+
+	var photo Photo
+	if DB.First(&photo, id).RecordNotFound() {
+		errorResponse := JSONResponse{"error": "No photo found for ID " + id}
+		Render.JSON(response, http.StatusNotFound, errorResponse)
+	} else {
+		thumbFile := path.Join(AppConfig.ThumbnailsFolderPath, PartitionIdAsPath(photo.Id), thumb+path.Ext(photo.Path))
+		http.ServeFile(response, request, thumbFile)
 	}
 }
 
