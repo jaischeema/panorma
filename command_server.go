@@ -82,7 +82,11 @@ func ImageHandler(response http.ResponseWriter, request *http.Request) {
 		errorResponse := JSONResponse{"error": "No photo found for ID " + id}
 		Render.JSON(response, http.StatusNotFound, errorResponse)
 	} else {
-		thumbFile := path.Join(AppConfig.ThumbnailsFolderPath, PartitionIdAsPath(photo.Id), thumb+path.Ext(photo.Path))
+		thumbFile := path.Join(
+			AppConfig.ThumbnailsFolderPath,
+			PartitionIdAsPath(photo.Id),
+			thumb+ThumbnailExtension,
+		)
 		http.ServeFile(response, request, thumbFile)
 	}
 }

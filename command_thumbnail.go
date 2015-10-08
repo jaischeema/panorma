@@ -27,7 +27,7 @@ func ThumbnailImages(c *cli.Context) {
 				log.Fatalf(err.Error())
 				panic(1)
 			}
-			thumbnailPath := path.Join(destinationFolder, name+path.Ext(photo.Path))
+			thumbnailPath := path.Join(destinationFolder, name+ThumbnailExtension)
 			err = resizeWithLib(fullPath, thumbnailPath, size.Width, size.Height)
 			if err != nil {
 				log.Printf("Unable to create thumbnail for %s", fullPath)

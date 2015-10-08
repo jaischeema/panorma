@@ -10,6 +10,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const ThumbnailExtension = ".jpg"
+
 type ThumbnailSize struct {
 	Width  int
 	Height int
