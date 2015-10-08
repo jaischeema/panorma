@@ -23,7 +23,10 @@ type SimilarPhoto struct {
 type Photo struct {
 	Id            int64          `json:"id"`
 	Path          string         `json:"path";sql:"not null;unique"`
-	HashValue     int64          `json:"hash_value";sql:"not null"`
+	Name          string         `json:"name"`
+	Ext           string         `json:"extension"`
+	IsVideo       bool           `json:"is_video";sql:"default:'false'"`
+	HashValue     int64          `json:"-";sql:"not null"`
 	TakenAt       time.Time      `json:"taken_at"`
 	Lat           float64        `json:"latitude"`
 	Lng           float64        `json:"longitude"`
@@ -31,6 +34,7 @@ type Photo struct {
 	Width         int            `json:"width"`
 	Size          int64          `json:"size"`
 	SimilarPhotos []SimilarPhoto `json:"similar_photos,omitempty"`
+	Thumbnailed   bool           `json:"-";sql:"default:'false'"`
 }
 
 func (photo Photo) ExistsInDatabase(db gorm.DB) bool {

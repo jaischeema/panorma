@@ -111,6 +111,10 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 				tx := db.Begin()
 
 				photo.Size = info.Size()
+				photo.Ext = path.Ext(itemPath)
+				photo.Name = strings.TrimSuffix(path.Base(itemPath), photo.Ext)
+				photo.IsVideo = isMovie
+
 				var photoHashValue uint64
 				if isPhoto {
 					photoHashValue = bktree.PHashValueForImage(itemPath)
