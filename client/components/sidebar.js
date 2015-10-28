@@ -21,7 +21,7 @@ export default class Sidebar extends React.Component {
           <Link to={"/"}>Panorma</Link>
         </div>
         <div className="menu">
-          <h4>Photos</h4>
+          <h4>Media</h4>
           <ul>
             {this.state.years.map((year) => { return this.renderSidebarItem(year); })}
           </ul>

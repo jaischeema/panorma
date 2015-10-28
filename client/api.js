@@ -9,9 +9,9 @@ class API {
       })
   }
 
-  fetchPhotos(params, callback) {
+  fetchMedia(params, callback) {
     request
-      .get('/photos')
+      .get('/media')
       .query(params)
       .end((err, response) => {
         callback(response);

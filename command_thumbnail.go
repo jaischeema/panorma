@@ -16,12 +16,12 @@ func ThumbnailImages(c *cli.Context) {
 	}
 
 	db := SetupDatabase(config.DatabaseConnectionString)
-	photos := PhotosNotThumbnailed(db)
+	images := ImagesNotThumbnailed(db)
 
-	for _, photo := range photos {
-		fullPath := path.Join(config.DestinationFolderPath, photo.Path)
+	for _, image := range images {
+		fullPath := path.Join(config.DestinationFolderPath, image.Path)
 		for name, size := range ThumbnailSizes {
-			destinationFolder := path.Join(config.ThumbnailsFolderPath, PartitionIdAsPath(photo.Id))
+			destinationFolder := path.Join(config.ThumbnailsFolderPath, PartitionIdAsPath(image.Id))
 			err := os.MkdirAll(destinationFolder, 0755)
 			if err != nil {
 				log.Fatalf(err.Error())
@@ -32,8 +32,8 @@ func ThumbnailImages(c *cli.Context) {
 			if err != nil {
 				log.Printf("Unable to create thumbnail for %s", fullPath)
 			} else {
-				photo.Thumbnailed = true
-				db.Save(&photo)
+				image.Thumbnailed = true
+				db.Save(&image)
 				log.Printf("Done: (%s) (%s)", name, fullPath)
 			}
 		}

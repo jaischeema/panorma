@@ -46,7 +46,7 @@ func SetupDatabase(connectionString string) gorm.DB {
 		panic("Unable to open database")
 	}
 
-	db.AutoMigrate(&Photo{}, &SimilarPhoto{})
+	db.AutoMigrate(&Media{}, &Resemblance{})
 	return db
 }
 

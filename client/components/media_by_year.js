@@ -1,7 +1,7 @@
 import React from 'react';
-import IntervalPhotos from './interval_photos';
+import MediaByInterval from './media_by_interval';
 
-export default class YearPhotos extends IntervalPhotos {
+export default class MediaByYear extends MediaByInterval {
   fetchParams(props) {
     return {
       year: props.params.year,

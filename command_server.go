@@ -30,10 +30,10 @@ func RunServer(c *cli.Context) {
 
 	DB = SetupDatabase(AppConfig.DatabaseConnectionString)
 
-	router.HandleFunc("/photos", PhotosHandler)
-	router.HandleFunc("/photos/{id}", PhotoHandler)
-	router.HandleFunc("/photos/{id}/{thumb}", ImageHandler)
-	router.HandleFunc("/similar", SimilarPhotosHandler)
+	router.HandleFunc("/media", MediaIndexHandler)
+	router.HandleFunc("/media/{id}", MediaHandler)
+	router.HandleFunc("/media/{id}/{thumb}", ThumbnailHandler)
+	router.HandleFunc("/similar", ResemblancesHandler)
 	router.HandleFunc("/all_dates", AllDates)
 
 	server := negroni.Classic()
@@ -49,52 +49,52 @@ func AllDates(response http.ResponseWriter, request *http.Request) {
 	})
 }
 
-func PhotosHandler(response http.ResponseWriter, request *http.Request) {
+func MediaIndexHandler(response http.ResponseWriter, request *http.Request) {
 	page := parseIntValueForParamWithDefault(request, "page", 1)
 	year := parseIntValueForParamWithDefaultZero(request, "year")
 	month := parseIntValueForParamWithDefaultZero(request, "month")
 	day := parseIntValueForParamWithDefaultZero(request, "day")
 
-	photos := FindAllPhotos(DB, page, year, month, day)
-	Render.JSON(response, http.StatusOK, photos)
+	media := AllMediaForDate(DB, page, year, month, day)
+	Render.JSON(response, http.StatusOK, media)
 }
 
-func PhotoHandler(response http.ResponseWriter, request *http.Request) {
+func MediaHandler(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id := vars["id"]
 
-	var photo Photo
-	if DB.Preload("SimilarPhotos").First(&photo, id).RecordNotFound() {
-		errorResponse := JSONResponse{"error": "No photo found for ID " + id}
+	var media Media
+	if DB.Preload("Resemblance").First(&media, id).RecordNotFound() {
+		errorResponse := JSONResponse{"error": "No media found for ID " + id}
 		Render.JSON(response, http.StatusNotFound, errorResponse)
 	} else {
-		Render.JSON(response, http.StatusOK, photo)
+		Render.JSON(response, http.StatusOK, media)
 	}
 }
 
-func ImageHandler(response http.ResponseWriter, request *http.Request) {
+func ThumbnailHandler(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id := vars["id"]
 	thumb := vars["thumb"]
 
-	var photo Photo
-	if DB.First(&photo, id).RecordNotFound() {
-		errorResponse := JSONResponse{"error": "No photo found for ID " + id}
+	var media Media
+	if DB.First(&media, id).RecordNotFound() {
+		errorResponse := JSONResponse{"error": "No media found for ID " + id}
 		Render.JSON(response, http.StatusNotFound, errorResponse)
 	} else {
 		thumbFile := path.Join(
 			AppConfig.ThumbnailsFolderPath,
-			PartitionIdAsPath(photo.Id),
+			PartitionIdAsPath(media.Id),
 			thumb+ThumbnailExtension,
 		)
 		http.ServeFile(response, request, thumbFile)
 	}
 }
 
-func SimilarPhotosHandler(response http.ResponseWriter, request *http.Request) {
-	var similiarPhotos []SimilarPhoto
-	DB.Find(&similiarPhotos)
-	Render.JSON(response, http.StatusOK, similiarPhotos)
+func ResemblancesHandler(response http.ResponseWriter, request *http.Request) {
+	var resemblances []Resemblance
+	DB.Find(&resemblances)
+	Render.JSON(response, http.StatusOK, resemblances)
 }
 
 func parseIntValueForParamWithDefault(request *http.Request, param string, defaultValue int) int {

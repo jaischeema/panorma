@@ -26,7 +26,7 @@ func main() {
 			Name:        "import",
 			ShortName:   "i",
 			Description: "import pictures",
-			Action:      ImportImages,
+			Action:      ImportMedia,
 			Flags:       configFlag,
 		},
 		{

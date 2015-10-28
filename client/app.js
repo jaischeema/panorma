@@ -1,21 +1,21 @@
 import React from 'react';
 import { Router, Route, Link } from 'react-router';
 
-import App         from './components/app';
-import Photos      from './components/photos';
-import Photo       from './components/photo';
-import YearPhotos  from './components/year_photos';
-import MonthPhotos from './components/month_photos';
-import DayPhotos   from './components/day_photos';
+import App          from './components/app';
+import MediaIndex   from './components/media_index';
+import Media        from './components/media';
+import MediaByYear  from './components/media_by_year';
+import MediaByMonth from './components/media_by_month';
+import MediaByDay   from './components/media_by_day';
 
 React.render(
   <Router>
     <Route path="/" component={App}>
-      <Route path="/photos" component={Photos} />
-      <Route path="/photo/:photo_id" component={Photo} />
-      <Route path="/from/:year" component={YearPhotos} />
-      <Route path="/from/:year/:month" component={MonthPhotos} />
-      <Route path="/from/:year/:month/:day" component={DayPhotos} />
+      <Route path="/media" component={MediaIndex} />
+      <Route path="/media/:media_id" component={Media} />
+      <Route path="/from/:year" component={MediaByYear} />
+      <Route path="/from/:year/:month" component={MediaByMonth} />
+      <Route path="/from/:year/:month/:day" component={MediaByDay} />
     </Route>
   </Router>,
   document.body

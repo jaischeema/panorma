@@ -1,7 +1,7 @@
 {
   "name": "panorma",
   "version": "0.0.1",
-  "description": "Frontend for panorma - photo management app",
+  "description": "Frontend for panorma - media management app",
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --hot --inline",
@@ -12,7 +12,8 @@
     "url": "git+https://github.com/jaischeema/panorma.git"
   },
   "keywords": [
-    "photo",
+    "image",
+    "video",
     "react",
     "golang"
   ],

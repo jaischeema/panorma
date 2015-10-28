@@ -1,22 +1,20 @@
 import React from 'react';
-import IntervalPhotos from './interval_photos';
+import MediaByInterval from './media_by_interval';
 import moment from 'moment';
 
-export default class DayPhotos extends IntervalPhotos {
+export default class MediaByMonth extends MediaByInterval {
   fetchParams(props) {
     return {
       year: props.params.year,
       month: props.params.month,
-      day: props.params.day
     }
   }
 
   titleElements() {
     let titleDate = moment({
       month: this.props.params.month - 1,
-      year:  this.props.params.year,
-      day:   this.props.params.day
+      year: this.props.params.year
     })
-    return <span>{titleDate.format('Do MMMM YYYY')}</span>
+    return <span>{titleDate.format('MMMM YYYY')}</span>
   }
 }

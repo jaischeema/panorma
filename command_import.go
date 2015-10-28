@@ -22,11 +22,11 @@ type Result struct {
 }
 
 var (
-	validPhotoExts = []string{".jpg", ".jpeg", ".tiff", ".tif", ".gif", ".png"}
+	validImageExts = []string{".jpg", ".jpeg", ".tiff", ".tif", ".gif", ".png"}
 	validMovieExts = []string{".mov", ".m4v", ".mp4", ".mov"}
 )
 
-func ImportImages(c *cli.Context) {
+func ImportMedia(c *cli.Context) {
 	config, err := LoadConfig(c.String("config"))
 	if err != nil {
 		log.Fatal(err)
@@ -40,34 +40,34 @@ func ImportImages(c *cli.Context) {
 		"destination": config.DestinationFolderPath,
 	}).Info("Starting image import.")
 
-	processPhotos(db, config.SourceFolderPath, config.DestinationFolderPath)
+	processItemsFromSource(db, config.SourceFolderPath, config.DestinationFolderPath)
 }
 
 func createTreeFromDatabase(db gorm.DB) bktree.Node {
 	log.Info("Initializing BKTree")
 
-	var photos []Photo
-	db.Select("id, hash_value").Find(&photos)
-	if len(photos) > 0 {
+	var media []Media
+	db.Select("id, hash_value").Find(&media)
+	if len(media) > 0 {
 		log.WithFields(log.Fields{
-			"count": len(photos),
-		}).Info("Photos found in database")
+			"count": len(media),
+		}).Info("Media found in database")
 
-		firstPhoto := photos[0]
-		tree := bktree.New(uint64(firstPhoto.HashValue), firstPhoto.Id)
-		for _, photo := range photos[1:] {
-			tree.Insert(uint64(photo.HashValue), photo.Id)
+		firstItem := media[0]
+		tree := bktree.New(uint64(firstItem.HashValue), firstItem.Id)
+		for _, item := range media[1:] {
+			tree.Insert(uint64(item.HashValue), item.Id)
 		}
 		return tree
 	} else {
-		log.Info("No photos, creating empty tree")
+		log.Info("No media, creating empty tree")
 		return bktree.Node{}
 	}
 }
 
 const allowedHammingDistance = 10
 
-func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
+func processItemsFromSource(db gorm.DB, sourcePath string, destinationPath string) {
 	tree := createTreeFromDatabase(db)
 	treeNeedsRootNode := (tree.HashValue == 0)
 
@@ -83,10 +83,10 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 
 		fileExtension := filepath.Ext(itemPath)
 		isMovie := strIn(fileExtension, validMovieExts)
-		isPhoto := strIn(fileExtension, validPhotoExts)
+		isImage := strIn(fileExtension, validImageExts)
 
-		if !info.IsDir() && (isMovie || isPhoto) {
-			photo, err := processPhoto(itemPath, info)
+		if !info.IsDir() && (isMovie || isImage) {
+			mediaItem, err := processMediaItem(itemPath, info)
 			if err != nil {
 				log.WithFields(log.Fields{
 					"path": itemPath,
@@ -96,13 +96,13 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 			}
 
 			log.WithFields(log.Fields{
-				"height":   photo.Height,
-				"width":    photo.Width,
-				"taken_at": photo.TakenAt,
-				"path":     photo.Path,
+				"height":   mediaItem.Height,
+				"width":    mediaItem.Width,
+				"taken_at": mediaItem.TakenAt,
+				"path":     mediaItem.Path,
 			}).Info("Processed attributes")
 
-			if photo.ExistsInDatabase(db) {
+			if mediaItem.ExistsInDatabase(db) {
 				// TODO: Move the duplicates to duplicate folder
 				log.WithFields(log.Fields{
 					"path": itemPath,
@@ -110,41 +110,41 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 			} else {
 				tx := db.Begin()
 
-				photo.Size = info.Size()
-				photo.Ext = path.Ext(itemPath)
-				photo.Name = strings.TrimSuffix(path.Base(itemPath), photo.Ext)
-				photo.IsVideo = isMovie
+				mediaItem.Size = info.Size()
+				mediaItem.Ext = strings.ToLower(path.Ext(itemPath))
+				mediaItem.Name = strings.TrimSuffix(path.Base(itemPath), mediaItem.Ext)
+				mediaItem.IsVideo = isMovie
 
-				var photoHashValue uint64
-				if isPhoto {
-					photoHashValue = bktree.PHashValueForImage(itemPath)
-					photo.HashValue = int64(photoHashValue)
+				var mediaItemHashValue uint64
+				if isImage {
+					mediaItemHashValue = bktree.PHashValueForImage(itemPath)
+					mediaItem.HashValue = int64(mediaItemHashValue)
 				}
 
-				db.Save(&photo)
+				db.Save(&mediaItem)
 
-				if isPhoto {
+				if isImage {
 					if treeNeedsRootNode {
-						tree = bktree.New(photoHashValue, photo.Id)
+						tree = bktree.New(mediaItemHashValue, mediaItem.Id)
 						treeNeedsRootNode = false
 					} else {
-						tree.Insert(photoHashValue, photo.Id)
+						tree.Insert(mediaItemHashValue, mediaItem.Id)
 					}
 
-					duplicateIds := tree.Find(photoHashValue, allowedHammingDistance)
+					duplicateIds := tree.Find(mediaItemHashValue, allowedHammingDistance)
 					for _, duplicateId := range duplicateIds {
-						if duplicateId == photo.Id {
+						if duplicateId == mediaItem.Id {
 							continue
 						}
-						var similarPhoto SimilarPhoto
-						db.Where(SimilarPhoto{
-							PhotoId:        photo.Id,
-							SimilarPhotoId: duplicateId.(int64),
-						}).FirstOrCreate(&similarPhoto)
+						var resemblance Resemblance
+						db.Where(Resemblance{
+							MediaId:           mediaItem.Id,
+							ResemblingMediaId: duplicateId.(int64),
+						}).FirstOrCreate(&resemblance)
 					}
 				}
 
-				err = moveFileInTransaction(itemPath, destinationPath, photo.Path)
+				err = moveFileInTransaction(itemPath, destinationPath, mediaItem.Path)
 
 				if err != nil {
 					tx.Rollback()
@@ -153,7 +153,7 @@ func processPhotos(db gorm.DB, sourcePath string, destinationPath string) {
 
 				log.WithFields(log.Fields{
 					"path":        itemPath,
-					"destination": photo.Path,
+					"destination": mediaItem.Path,
 				}).Info("Moved to archive")
 
 				tx.Commit()
@@ -207,7 +207,7 @@ func moveFileInTransaction(itemPath string, destinationRoot string, destinationP
 	return nil
 }
 
-func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
+func processMediaItem(path string, info os.FileInfo) (mediaItem Media, err error) {
 	log.WithFields(log.Fields{
 		"path": path,
 	}).Info("Processing item")
@@ -225,7 +225,7 @@ func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
 			"error": err,
 		}).Warn("Unable to decode EXIF data")
 
-		return extractImageWithDimensions(path, info), nil
+		return extractItemWithDimensions(path, info), nil
 	}
 
 	tm, err := data.DateTime()
@@ -234,7 +234,7 @@ func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
 			"error": err,
 		}).Warn("Unable to find EXIF datetime")
 
-		return extractImageWithDimensions(path, info), nil
+		return extractItemWithDimensions(path, info), nil
 	}
 
 	lat, long, _ := data.LatLong()
@@ -243,14 +243,14 @@ func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
 
 	if widthTag == nil || heightTag == nil {
 		log.Warn("WidthTag OR HeightTag is not available")
-		return extractImageWithDimensions(path, info), nil
+		return extractItemWithDimensions(path, info), nil
 	}
 
 	width, _ := widthTag.Int(0)
 	height, _ := heightTag.Int(0)
 
-	photo = Photo{
-		Path:    calculatePhotoTimedPath(path, tm),
+	mediaItem = Media{
+		Path:    calculatePathWithDate(path, tm),
 		TakenAt: tm,
 		Lat:     lat,
 		Lng:     long,
@@ -260,7 +260,7 @@ func processPhoto(path string, info os.FileInfo) (photo Photo, err error) {
 	return
 }
 
-func calculatePhotoTimedPath(filepath string, takenAt time.Time) string {
+func calculatePathWithDate(filepath string, takenAt time.Time) string {
 	timeFormat := takenAt.Format("2006/01-January/02")
 
 	_, file := path.Split(filepath)
@@ -276,18 +276,18 @@ func strIn(a string, list []string) bool {
 	return false
 }
 
-func extractImageWithDimensions(path string, info os.FileInfo) Photo {
-	width, height := imageDimensions(path)
+func extractItemWithDimensions(path string, info os.FileInfo) Media {
+	width, height := dimensionsFromFile(path)
 
-	return Photo{
-		Path:    calculatePhotoTimedPath(path, info.ModTime()),
+	return Media{
+		Path:    calculatePathWithDate(path, info.ModTime()),
 		TakenAt: info.ModTime(),
 		Height:  height,
 		Width:   width,
 	}
 }
 
-func imageDimensions(imagePath string) (int, int) {
+func dimensionsFromFile(imagePath string) (int, int) {
 	file, _ := os.Open(imagePath)
 	defer file.Close()
 	image, _, _ := image.DecodeConfig(file)

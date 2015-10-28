@@ -1,28 +1,28 @@
 import React     from 'react';
-import PhotoList from './photo_list';
+import MediaList from './media_list';
 import API from '../api';
 
-export default class IntervalPhotos extends React.Component {
+export default class MediaByInterval extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       page:    1,
-      photos:  [],
+      media:  [],
       loading: true
     };
-    this.loadPhotos(props);
+    this.loadMedia(props);
   }
 
   componentWillReceiveProps(props) {
     this.setState({loading: true});
-    this.loadPhotos(props);
+    this.loadMedia(props);
   }
 
-  loadPhotos(props) {
+  loadMedia(props) {
     let api = new API;
     let fetchParams = this.fetchParams(props);
-    api.fetchPhotos(fetchParams, (response) => {
-      this.setState({photos: response.body, loading: false})
+    api.fetchMedia(fetchParams, (response) => {
+      this.setState({media: response.body, loading: false})
     });
   }
 
@@ -46,7 +46,7 @@ export default class IntervalPhotos extends React.Component {
     if(this.state.loading) {
       return <span>Loading...</span>
     } else {
-      return <PhotoList photos={this.state.photos} />
+      return <MediaList media={this.state.media} />
     }
   }
 }
